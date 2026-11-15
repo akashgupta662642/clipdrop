@@ -1,0 +1,64 @@
+name: Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "windows/**"
+      - "docs/test-vectors/**"
+      - ".github/workflows/windows.yml"
+  pull_request:
+    paths:
+      - "windows/**"
+      - "docs/test-vectors/**"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: windows
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore ClipDrop.slnx
+
+      - name: Build
+        run: dotnet build ClipDrop.slnx --configuration Release --no-restore
+
+      # Runs on Microsoft.Testing.Platform (see the "test" section of global.json).
+      - name: Test
+        run: >
+          dotnet test --solution ClipDrop.slnx --configuration Release --no-build
+          --report-xunit-trx --results-directory TestResults
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-test-results
+          path: windows/TestResults/
+          retention-days: 7
