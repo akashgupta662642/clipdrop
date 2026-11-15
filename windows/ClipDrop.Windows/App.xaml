@@ -1,5 +1,33 @@
 <Application x:Class="ClipDrop.Windows.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Application.Resources />
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <!-- The tray icon is the app's home: closing the window keeps ClipDrop running here.
+             Its DataContext (MainViewModel) is set in App.xaml.cs. -->
+        <tb:TaskbarIcon x:Key="TrayIcon"
+                        ToolTipText="{Binding TrayStatus}"
+                        MenuActivation="RightClick"
+                        NoLeftClickDelay="True"
+                        LeftClickCommand="{Binding OpenWindowCommand}">
+            <tb:TaskbarIcon.IconSource>
+                <!-- Placeholder: real icons arrive with the polish milestone. -->
+                <tb:GeneratedIconSource Text="C" Foreground="White" Background="#0E4D64" FontWeight="Bold" />
+            </tb:TaskbarIcon.IconSource>
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{Binding TrayStatus}" IsEnabled="False" />
+                    <Separator />
+                    <MenuItem Header="Send clipboard to phone" Command="{Binding SendClipboardCommand}" />
+                    <MenuItem Header="Sync clipboard automatically" IsCheckable="True" IsChecked="{Binding AutoSyncToPhone}" />
+                    <Separator />
+                    <MenuItem Header="Pair device…" Command="{Binding PairFromTrayCommand}" />
+                    <MenuItem Header="Open ClipDrop" Command="{Binding OpenWindowCommand}" />
+                    <Separator />
+                    <MenuItem Header="Quit" Command="{Binding QuitCommand}" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+    </Application.Resources>
 </Application>

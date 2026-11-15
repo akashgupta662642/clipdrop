@@ -31,16 +31,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly HostRuntime _runtime;
     private readonly Dispatcher _dispatcher;
+    private readonly Func<Task<string>> _sendClipboard;
     private readonly DispatcherTimer _countdown;
     private PairingInvitation? _invitation;
 
-    public MainViewModel(HostRuntime runtime, Dispatcher dispatcher)
+    /// <param name="runtime">The running host.</param>
+    /// <param name="dispatcher">The UI dispatcher that host events are marshalled to.</param>
+    /// <param name="sendClipboard">Sends the PC's clipboard now; returns a message for the user.</param>
+    public MainViewModel(HostRuntime runtime, Dispatcher dispatcher, Func<Task<string>> sendClipboard)
     {
         _runtime = runtime;
         _dispatcher = dispatcher;
-        _countdown = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Normal, (_, _) => UpdateCountdown(), dispatcher);
+        _sendClipboard = sendClipboard;
+        // Not the (interval, priority, handler, dispatcher) constructor: that one starts the timer at once.
+        _countdown = new DispatcherTimer(DispatcherPriority.Normal, dispatcher) { Interval = TimeSpan.FromSeconds(1) };
+        _countdown.Tick += (_, _) => UpdateCountdown();
 
         DeviceName = runtime.Settings.DeviceName;
+        AutoSyncToPhone = runtime.Settings.AutoSyncToPhone;
         IReadOnlyList<string> addresses = runtime.PairingAddresses();
         NetworkSummary = runtime.LoopbackOnly
             ? $"Developer mode: listening on 127.0.0.1 only, port {runtime.Server.Port}"
@@ -78,6 +86,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// <summary>The pairing link as text, shown only in developer mode for <c>adb</c> testing with an emulator.</summary>
     [ObservableProperty]
     public partial string? DeveloperPairingLink { get; set; }
+
+    /// <summary>One line for the tray tooltip and menu: who is connected.</summary>
+    [ObservableProperty]
+    public partial string TrayStatus { get; set; } = "No devices connected";
+
+    /// <summary>Send clips copied on this PC to connected phones automatically (tray menu toggle).</summary>
+    [ObservableProperty]
+    public partial bool AutoSyncToPhone { get; set; }
+
+    /// <summary>The tray asked to show the window.</summary>
+    public event EventHandler? ShowWindowRequested;
+
+    /// <summary>The tray asked to quit the app.</summary>
+    public event EventHandler? QuitRequested;
+
+    /// <summary>A message for a brief notification: title, then text.</summary>
+    public event EventHandler<(string Title, string Message)>? NotificationRequested;
+
+    partial void OnAutoSyncToPhoneChanged(bool value)
+    {
+        if (_runtime.Settings.AutoSyncToPhone != value)
+        {
+            _runtime.UpdateSettings(_runtime.Settings with { AutoSyncToPhone = value });
+        }
+    }
+
+    [RelayCommand]
+    private async Task SendClipboardAsync() =>
+        NotificationRequested?.Invoke(this, ("ClipDrop", await _sendClipboard().ConfigureAwait(true)));
+
+    [RelayCommand]
+    private void OpenWindow() => ShowWindowRequested?.Invoke(this, EventArgs.Empty);
+
+    [RelayCommand]
+    private void PairFromTray()
+    {
+        ShowWindowRequested?.Invoke(this, EventArgs.Empty);
+        PairDevice();
+    }
+
+    [RelayCommand]
+    private void Quit() => QuitRequested?.Invoke(this, EventArgs.Empty);
 
     [RelayCommand]
     private void PairDevice()
@@ -167,6 +217,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         HasDevices = Devices.Count > 0;
+        List<string> connected = [.. Devices.Where(d => online.Contains(d.DeviceId)).Select(d => d.Name)];
+        TrayStatus = connected.Count == 0 ? "No devices connected" : $"Connected to {string.Join(", ", connected)}";
     }
 
     private void OnUi(Action action) => _dispatcher.BeginInvoke(action);

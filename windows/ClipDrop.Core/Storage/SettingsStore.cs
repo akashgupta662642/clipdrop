@@ -4,7 +4,10 @@ using System.Text.Json.Serialization;
 namespace ClipDrop.Core.Storage;
 
 /// <summary>User settings. More arrive with the settings screen in a later milestone.</summary>
-public sealed record AppSettings(string DeviceName, int? LastPort = null);
+/// <param name="DeviceName">The name other devices see.</param>
+/// <param name="LastPort">The port bound last time (§4.1).</param>
+/// <param name="AutoSyncToPhone">Send clips copied on this PC to connected phones automatically.</param>
+public sealed record AppSettings(string DeviceName, int? LastPort = null, bool AutoSyncToPhone = true);
 
 /// <summary>Settings as JSON in the app's data folder. A missing or unreadable file means defaults.</summary>
 public sealed class SettingsStore(string path)
