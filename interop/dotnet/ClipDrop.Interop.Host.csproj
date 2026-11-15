@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The PC side of the CI interop test: ClipDrop.Core's real host server, driven from the
+       command line. See interop/README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ClipDrop.Interop.Host</RootNamespace>
+    <AssemblyName>clipdrop-interop-host</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\windows\ClipDrop.Core\ClipDrop.Core.csproj" />
+  </ItemGroup>
+
+</Project>

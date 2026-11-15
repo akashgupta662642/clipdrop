@@ -1,0 +1,4 @@
+<Project>
+  <!-- Share the Windows solution's compiler settings. -->
+  <Import Project="..\..\windows\Directory.Build.props" />
+</Project>

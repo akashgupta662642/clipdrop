@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - "android/**"
+      - "interop/kotlin/**"
       - "docs/test-vectors/**"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "android/**"
+      - "interop/kotlin/**"
       - "docs/test-vectors/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:

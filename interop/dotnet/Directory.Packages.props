@@ -1,0 +1,4 @@
+<Project>
+  <!-- Share the Windows solution's package versions. -->
+  <Import Project="..\..\windows\Directory.Packages.props" />
+</Project>

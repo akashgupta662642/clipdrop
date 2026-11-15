@@ -5,11 +5,13 @@ on:
     branches: [main]
     paths:
       - "windows/**"
+      - "interop/dotnet/**"
       - "docs/test-vectors/**"
       - ".github/workflows/windows.yml"
   pull_request:
     paths:
       - "windows/**"
+      - "interop/dotnet/**"
       - "docs/test-vectors/**"
       - ".github/workflows/windows.yml"
   workflow_dispatch:
