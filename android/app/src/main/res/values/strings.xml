@@ -14,6 +14,27 @@
     <string name="state_connected">Connected</string>
     <string name="state_connected_rtt">Connected · ping %1$d ms</string>
     <string name="home_ping_failed">%1$s didn\'t answer the ping.</string>
+    <string name="home_send_clipboard">Send clipboard to PC</string>
+    <string name="home_auto_sync">Copy from my PC automatically</string>
+    <string name="home_auto_sync_detail">Text you copy on a connected PC appears on this phone\'s clipboard.</string>
+    <string name="home_notifications_rationale">Allow notifications to see the connection status and send your clipboard from the notification shade.</string>
+    <string name="home_notifications_grant">Allow notifications</string>
+
+    <!-- Sending the clipboard -->
+    <string name="send_sent_to">Sent to %1$s</string>
+    <string name="send_no_pc">No PC is connected. Open ClipDrop to reconnect.</string>
+    <string name="send_empty">The clipboard is empty.</string>
+    <string name="send_sensitive">Not sent: the app that copied it marked it as sensitive.</string>
+    <string name="send_echo">That came from your PC, so it\'s already there.</string>
+    <string name="send_too_large">Too large to send as text (over 1 MB).</string>
+    <string name="send_not_text">Only text can be sent for now.</string>
+
+    <!-- Background service, notification and tile -->
+    <string name="notification_channel_connection">Connection</string>
+    <string name="notification_connected">Connected to %1$s</string>
+    <string name="action_send_clipboard">Send clipboard</string>
+    <string name="action_stop">Stop</string>
+    <string name="tile_label">Send clipboard</string>
 
     <!-- Scanning -->
     <string name="scan_title">Scan the pairing code</string>

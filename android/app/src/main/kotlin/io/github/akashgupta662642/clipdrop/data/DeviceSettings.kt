@@ -5,6 +5,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -23,10 +24,17 @@ class DeviceSettings @Inject constructor(@ApplicationContext private val context
     /** The name other devices see; defaults to the phone's own device name. */
     val deviceName: Flow<String> = context.settingsStore.data.map { it[DEVICE_NAME] ?: systemDeviceName() }
 
+    /** Whether clips copied on a PC land on this phone's clipboard automatically. Default on. */
+    val autoSyncFromPc: Flow<Boolean> = context.settingsStore.data.map { it[AUTO_SYNC_FROM_PC] ?: true }
+
     suspend fun deviceName(): String = deviceName.first()
 
     suspend fun setDeviceName(name: String) {
         context.settingsStore.edit { it[DEVICE_NAME] = name.trim().take(64) }
+    }
+
+    suspend fun setAutoSyncFromPc(enabled: Boolean) {
+        context.settingsStore.edit { it[AUTO_SYNC_FROM_PC] = enabled }
     }
 
     private fun systemDeviceName(): String =
@@ -35,5 +43,6 @@ class DeviceSettings @Inject constructor(@ApplicationContext private val context
 
     private companion object {
         val DEVICE_NAME = stringPreferencesKey("device_name")
+        val AUTO_SYNC_FROM_PC = booleanPreferencesKey("auto_sync_from_pc")
     }
 }

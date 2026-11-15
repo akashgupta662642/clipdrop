@@ -12,6 +12,14 @@
     <!-- Only used to scan the pairing QR code. -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- The foreground service that keeps PCs connected (type connectedDevice: no daily limit). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <!-- Satisfies the connectedDevice runtime prerequisite on Android 14+; mDNS will use it too. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- The service's status notification and its Send clipboard action (Android 13+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Pairing also works through a clipdrop://pair link, so a camera isn't required. -->
     <uses-feature
         android:name="android.hardware.camera"
@@ -51,5 +59,35 @@
                     android:host="pair" />
             </intent-filter>
         </activity>
+
+        <!-- Invisible: gains focus just long enough to read the clipboard (Android 10+ rule).
+             Its own empty task affinity keeps it from bringing the app's task forward. -->
+        <activity
+            android:name=".clipboard.SendClipboardActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.ClipDrop.Invisible" />
+
+        <service
+            android:name=".service.SyncForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <service
+            android:name=".clipboard.ClipboardTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_send_clipboard"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <!-- An action tile, not an on/off switch. -->
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="false" />
+        </service>
     </application>
 </manifest>

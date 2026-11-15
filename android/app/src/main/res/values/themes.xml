@@ -2,4 +2,12 @@
 <resources>
     <!-- Window theme only; Compose draws everything else (ui/theme/Theme.kt). -->
     <style name="Theme.ClipDrop" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- SendClipboardActivity: translucent (not NoDisplay, which never gets window focus),
+         with no animation and no dimming, so the user sees nothing but the result toast. -->
+    <style name="Theme.ClipDrop.Invisible" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>
