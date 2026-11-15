@@ -34,4 +34,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // The golden vectors shared with the Windows test suite (docs/PROTOCOL.md §16).
+    val vectors = rootProject.layout.projectDirectory.dir("../docs/test-vectors")
+    inputs.dir(vectors).withPropertyName("testVectors").withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("clipdrop.testVectors", vectors.asFile.absolutePath)
 }
