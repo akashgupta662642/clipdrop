@@ -1,0 +1,19 @@
+# Normalise line endings in the repository to LF; check out Windows-only
+# script formats with CRLF so they run under cmd.exe / PowerShell.
+* text=auto eol=lf
+
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary assets
+*.jar      binary
+*.png      binary
+*.jpg      binary
+*.gif      binary
+*.ico      binary
+*.webp     binary
+*.pfx      binary
+*.p12      binary
+*.jks      binary
+*.keystore binary

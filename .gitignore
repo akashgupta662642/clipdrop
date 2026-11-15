@@ -1,0 +1,42 @@
+# ── OS / editors ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+*.iml
+
+# ── Android / Gradle ───────────────────────────────────────────
+.gradle/
+.kotlin/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# ── .NET / Visual Studio ───────────────────────────────────────
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.rsuser
+TestResults/
+*.trx
+*.coverage
+coverage*.xml
+publish/
+artifacts/
+
+# ── Secrets: never commit signing material ────────────────────
+*.jks
+*.keystore
+*.pfx
+*.p12
+signing.properties
