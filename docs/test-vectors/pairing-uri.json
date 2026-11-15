@@ -1,0 +1,298 @@
+{
+  "description": "Pairing URIs, valid and invalid (PROTOCOL.md §6).",
+  "vectors": [
+    {
+      "name": "basic",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "several-hosts-reordered-unknown-param",
+      "uri": "clipdrop://pair?n=Lab%20Box&x=ignored&t=AAECAwQFBgcICQoLDA0ODw&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&p=50123&h=192.168.1.20,10.0.0.7,172.16.5.4&v=1&future=",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20",
+          "10.0.0.7",
+          "172.16.5.4"
+        ],
+        "port": 50123,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Lab Box"
+      }
+    },
+    {
+      "name": "uppercase-scheme-and-host",
+      "uri": "CLIPDROP://PAIR?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "plus-is-literal",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Dev+Box",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Dev+Box"
+      }
+    },
+    {
+      "name": "utf8-name",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Akash%E2%80%99s%20PC%20%F0%9F%92%BB",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Akash’s PC 💻"
+      }
+    },
+    {
+      "name": "name-trimmed",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=%20%20Office%20%20",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office"
+      }
+    },
+    {
+      "name": "port-bounds-low",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=1&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 1,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "port-bounds-high",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=65535&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "192.168.1.20"
+        ],
+        "port": 65535,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "host-octet-bounds",
+      "uri": "clipdrop://pair?v=1&h=0.0.0.0,255.255.255.255&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "0.0.0.0",
+          "255.255.255.255"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "sixteen-hosts",
+      "uri": "clipdrop://pair?v=1&h=10.0.0.1,10.0.0.2,10.0.0.3,10.0.0.4,10.0.0.5,10.0.0.6,10.0.0.7,10.0.0.8,10.0.0.9,10.0.0.10,10.0.0.11,10.0.0.12,10.0.0.13,10.0.0.14,10.0.0.15,10.0.0.16&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "expected": {
+        "version": 1,
+        "hosts": [
+          "10.0.0.1",
+          "10.0.0.2",
+          "10.0.0.3",
+          "10.0.0.4",
+          "10.0.0.5",
+          "10.0.0.6",
+          "10.0.0.7",
+          "10.0.0.8",
+          "10.0.0.9",
+          "10.0.0.10",
+          "10.0.0.11",
+          "10.0.0.12",
+          "10.0.0.13",
+          "10.0.0.14",
+          "10.0.0.15",
+          "10.0.0.16"
+        ],
+        "port": 47821,
+        "fingerprint": "lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc",
+        "token": "AAECAwQFBgcICQoLDA0ODw",
+        "name": "Office PC"
+      }
+    },
+    {
+      "name": "newer-version",
+      "uri": "clipdrop://pair?v=2&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "unsupported_version"
+    },
+    {
+      "name": "version-zero",
+      "uri": "clipdrop://pair?v=0&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "version-leading-zero",
+      "uri": "clipdrop://pair?v=01&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "wrong-scheme",
+      "uri": "https://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "wrong-host",
+      "uri": "clipdrop://connect?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "no-query",
+      "uri": "clipdrop://pair",
+      "error": "invalid"
+    },
+    {
+      "name": "missing-token",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "missing-name",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw",
+      "error": "invalid"
+    },
+    {
+      "name": "missing-hosts",
+      "uri": "clipdrop://pair?v=1&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "duplicate-port",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC&p=47822",
+      "error": "invalid"
+    },
+    {
+      "name": "port-zero",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=0&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "port-too-large",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=65536&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "port-leading-zero",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=047821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "port-not-number",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=http&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "host-three-octets",
+      "uri": "clipdrop://pair?v=1&h=192.168.1&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "host-octet-too-large",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.256&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "host-octet-leading-zero",
+      "uri": "clipdrop://pair?v=1&h=192.168.01.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "host-empty-entry",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20,,10.0.0.7&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "host-name-not-ip",
+      "uri": "clipdrop://pair?v=1&h=my-pc.local&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "seventeen-hosts",
+      "uri": "clipdrop://pair?v=1&h=10.0.0.1,10.0.0.2,10.0.0.3,10.0.0.4,10.0.0.5,10.0.0.6,10.0.0.7,10.0.0.8,10.0.0.9,10.0.0.10,10.0.0.11,10.0.0.12,10.0.0.13,10.0.0.14,10.0.0.15,10.0.0.16,10.0.0.17&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "fingerprint-too-short",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDb&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "fingerprint-standard-base64",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDb%2B&t=AAECAwQFBgcICQoLDA0ODw&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "token-too-long",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODwA&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "token-padded",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw%3D%3D&n=Office%20PC",
+      "error": "invalid"
+    },
+    {
+      "name": "name-invalid-utf8",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=%FF%FE",
+      "error": "invalid"
+    },
+    {
+      "name": "name-bad-percent-escape",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=Office%2",
+      "error": "invalid"
+    },
+    {
+      "name": "name-blank",
+      "uri": "clipdrop://pair?v=1&h=192.168.1.20&p=47821&fp=lipVfO00AvsAgWaICyJkpnwoMsly8rb59dZDCuxVDbc&t=AAECAwQFBgcICQoLDA0ODw&n=%20%20",
+      "error": "invalid"
+    }
+  ]
+}

@@ -103,6 +103,7 @@ Example: a fingerprint of 32 bytes of `0x00` gives the device ID `AAAAAAAAAAAAAA
 Rules:
 
 * The private key never leaves the device. Android keeps it in the AndroidKeyStore, where it can't be exported. Windows keeps it in a PKCS#12 file encrypted with DPAPI for the current user.
+* **Note for Android:** the AndroidKeyStore key MUST authorise `KeyProperties.DIGEST_NONE` as well as `DIGEST_SHA256`. Android's TLS stack hashes the handshake itself and asks the Keystore for a raw `NONEwithECDSA` signature, so with `SHA256` alone the client-certificate handshake fails. This was verified against SChannel on TLS 1.3 and TLS 1.2.
 * A device that regenerates its key pair is, by definition, a new device. Every peer must pair with it again.
 * A device's name can change at any time. Peers learn the current name from `HELLO` / `HELLO_ACK` (§8.1) and update what they display. Names are never used for identity.
 
@@ -216,9 +217,16 @@ clipdrop://pair?v=1&h=<ipv4>[,<ipv4>…]&p=<port>&fp=<fingerprint>&t=<token>&n=<
 
 Parsing rules:
 
+* The scheme and the host part (`pair`) are compared case-insensitively. Everything else is case-sensitive.
 * Parameters may appear in any order.
 * Unknown parameters MUST be ignored.
-* A duplicated or malformed known parameter makes the URI invalid. Clients reject an invalid URI with a clear message and make no connection.
+* A duplicated or malformed known parameter makes the URI invalid. Clients reject an invalid URI with a clear message and make no connection. Malformed means:
+  * `v` or `p` isn't a decimal integer without leading zeros, or is out of range;
+  * an `h` entry isn't four decimal octets from 0 to 255, without leading zeros;
+  * `fp` isn't 43 base64url characters;
+  * `t` isn't 22 base64url characters;
+  * `n` doesn't percent-decode to valid UTF-8, or is empty after decoding and trimming.
+* `+` in `n` is a literal plus sign, not a space. Senders encode a space as `%20`.
 
 Example:
 
@@ -284,7 +292,7 @@ The first frame the client sends after the TLS handshake.
 
 | Field | Type | Rules |
 |---|---|---|
-| `protocolVersion` | integer | The highest protocol version the sender supports. At least 1. |
+| `protocolVersion` | integer | The highest protocol version the sender supports, from 1 to 2^31 − 1. |
 | `deviceId` | string | The sender's device ID (§3). MUST equal the fingerprint of the sender's TLS certificate. |
 | `deviceName` | string | The sender's current device name (§2). |
 | `platform` | string | `"android"` or `"windows"`. Receivers MUST accept other values and treat them as unknown. |
@@ -344,8 +352,8 @@ No fields. The payload is `{}`.
 |---|---|---|
 | `transferId` | string | A UUID chosen by the sender, one per file. It is reused when the transfer resumes (§13). |
 | `purpose` | string | `"file"` or `"clipboardImage"`. |
-| `name` | string | The file name only, with no directory part. 1 to 255 UTF-8 bytes. |
-| `relativePath` | string | For files sent as part of a folder: the directory part relative to the folder that was sent, with `/` as the separator, for example `"Photos/2024"`. `""` for a single file. |
+| `name` | string | The file name only, with no directory part. Senders send 1 to 255 UTF-8 bytes. Receivers sanitise it (§12.3) rather than reject it at decode time. |
+| `relativePath` | string | For files sent as part of a folder: the directory part relative to the folder that was sent, with `/` as the separator, for example `"Photos/2024"`. `""` for a single file. Receivers sanitise it (§12.3). |
 | `size` | integer | The file size in bytes, 0 to 2^53 − 1. |
 | `mime` | string | The MIME type, or `"application/octet-stream"` if it is unknown. |
 
@@ -374,8 +382,10 @@ No fields. The payload is `{}`.
 ```
 
 * `transferId`: the binary UUID (§2).
-* `offset`: the position of the first data byte within the file.
+* `offset`: the position of the first data byte within the file, from 0 to 2^53 − 1.
 * `data`: 1 to 262,144 bytes. Senders SHOULD send full 262,144-byte chunks, except for the last one.
+
+A chunk payload shorter than 25 bytes or longer than 262,168 bytes, or an `offset` above 2^53 − 1, is a protocol error at decode time.
 
 The largest chunk frame has `length` = 1 + 16 + 8 + 262,144 = 262,169, well under the frame limit.
 
@@ -415,11 +425,23 @@ The largest chunk frame has `length` = 1 + 16 + 8 + 262,144 = 262,169, well unde
 * unknown fields are present (they MUST be ignored), and
 * optional fields are `null` (treated as absent).
 
-The following are protocol errors:
+**Decode-time validation.** Exactly the following are protocol errors when a control frame is decoded. Both implementations apply the same list, and the negative test vectors (§16) cover it:
 
 * the payload is not a JSON object, or is invalid UTF-8;
-* a required field is missing, or a field has the wrong JSON type;
-* a value breaks its rules, for example a negative `size` or a malformed UUID.
+* a string contains an unpaired surrogate, whether as raw bytes or as an escape such as `\ud800`;
+* a required field is missing, or has the wrong JSON type. That includes an integer field written as a string (`"1"`), or with a fraction or exponent (`1.0`, `1e2`);
+* an integer is out of range: `protocolVersion` must be 1 to 2^31 − 1, `nonce` 0 to 2^32 − 1, and every other integer 0 to 2^53 − 1;
+* a UUID field isn't in lowercase `8-4-4-4-12` form;
+* `deviceId` isn't 43 base64url characters;
+* `sha256` isn't 64 lowercase hex characters;
+* `deviceName` is empty after trimming, or `CLIP_TEXT.text` is empty;
+* `reason` is present when `ok` is `true`, or absent when `ok` is `false`.
+
+String fields with no rule in this list are checked by the layer that uses them, never at decode time. Examples:
+
+* a bad pairing `token` gets `PAIR_RESULT` with `invalid_token` (§10.1);
+* an unknown `purpose` gets `TRANSFER_REJECT` with `unsupported` (§12.2);
+* an awkward `name` is sanitised (§12.3).
 
 A receiver MAY also treat a duplicated key as a protocol error.
 
@@ -675,7 +697,7 @@ Partial data is written to a `.part` file that only the receiver uses. Each plat
 **On `TRANSFER_CHUNK`:**
 
 1. Unknown or cancelled `transferId`: discard the chunk silently (§9.5).
-2. `offset` doesn't equal the bytes received so far, or is at least 2^63 when read as an unsigned integer: protocol error.
+2. `offset` doesn't equal the bytes received so far: protocol error.
 3. `offset + data length > size`: protocol error.
 4. Otherwise, append the data to the `.part` file and update the incremental SHA-256.
 5. Report progress to the local UI at most 10 times per second.
@@ -786,43 +808,48 @@ Anything else needs a new protocol version. That includes changing the meaning o
 
 ## 16. Test vectors
 
-`docs/test-vectors/` holds golden frames that both test suites consume. Each file is JSON:
+`docs/test-vectors/` holds golden data that both test suites consume. A small reference generator, [`generate.py`](test-vectors/generate.py), writes the files. It uses only the Python standard library, whose `json.dumps(ensure_ascii=False, separators=(",", ":"))` produces exactly the canonical form of §8.2. That makes it a third, independent encoder: the Kotlin and .NET codecs must match it byte for byte, so they can't both be wrong in the same way.
+
+| File | Contents |
+|---|---|
+| `frames.json` | Positive frame and message vectors |
+| `invalid-frames.json` | Negative frame and message vectors |
+| `pairing-uri.json` | Pairing URIs, valid and invalid |
+| `identity.json` | A fixed certificate with its fingerprint and device ID |
+
+**`frames.json` and `invalid-frames.json`**
 
 ```json
-{
-  "description": "Control frames with canonical JSON payloads",
-  "vectors": [
-    {
-      "name": "hello-basic",
-      "type": "HELLO",
-      "message": { "protocolVersion": 1, "deviceId": "…", "deviceName": "Pixel 9", "platform": "android", "appVersion": "0.1.0" },
-      "hex": "00000078017b2270726f746f636f6c56657273696f6e223a31…"
-    },
-    {
-      "name": "length-over-limit",
-      "hex": "0010000101",
-      "error": "frame_too_large"
-    }
-  ]
-}
+{ "name": "hello-basic", "type": "HELLO", "typeCode": 1,
+  "message": { "protocolVersion": 1, "deviceId": "…", "…": "…" },
+  "hex": "0000007a01…" }
+
+{ "name": "unpair-empty-payload", "type": "UNPAIR", "typeCode": 5, "message": {},
+  "hex": "0000000105", "reencodedHex": "00000003057b7d" }
+
+{ "name": "length-over-limit", "hex": "0010000101", "error": "frame_too_large" }
 ```
 
-Each test suite MUST do the following:
+* **Positive vectors** (`message` present). A suite MUST:
+  1. read one frame from `hex`, consuming every byte, and check its type code;
+  2. decode the message and check that it equals `message`;
+  3. encode it again and get exactly `hex`, or `reencodedHex` when present.
 
-* **Positive vectors** (those with `message`):
-  1. Decode `hex` with the frame codec and get the expected message.
-  2. Encode that message again and get exactly `hex`.
-* **Negative vectors** (those with `error`): decoding `hex` fails with that error.
+  `reencodedHex` marks a vector whose input is valid but not canonical (whitespace, reordered or unknown fields, escaped characters, `null` optionals, an empty payload). Those vectors test leniency on input and canonical form on output.
+* **Message shapes.** For `TRANSFER_CHUNK`, `message` is `{ "transferId", "offset", "dataHex" }`. For a type code this version doesn't define, `type` is `"UNKNOWN"` and `message` is `{ "payloadHex" }`. Such a frame decodes without error, because §15.2 handles it at the session layer.
+* **Negative vectors** (`error` present). Decoding fails with that error:
+  * `frame_too_large` and `truncated` come from the frame codec;
+  * `protocol_error` comes from the message codec, after the frame itself was read successfully.
 
-The vectors cover the following:
+**`pairing-uri.json`.** Each entry has a `uri`, and then one of:
 
-* every message type, including unicode, escaping and emoji text in `CLIP_TEXT`;
-* `TRANSFER_CHUNK` headers, including a maximal offset and data length;
-* frame limits;
-* pairing-URI parsing;
-* fingerprint and device-ID derivation from a fixed certificate.
+* an `expected` object with `version`, `hosts`, `port`, `fingerprint`, `token` and `name`;
+* `"error": "invalid"`;
+* `"error": "unsupported_version"`, for a well-formed URI whose `v` is newer than the client understands.
 
-The vector files are written in milestone 2, together with the codecs.
+**`identity.json`.** A certificate as DER hex, with its fingerprint (hex) and device ID.
+
+Regenerate the files with `python docs/test-vectors/generate.py`, and commit the output alongside the generator change.
 
 ---
 
