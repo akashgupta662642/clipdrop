@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- No UI and no WPF: protocol, crypto, networking, transfers and storage.
+       Platform-specific pieces (such as DPAPI) sit behind interfaces so the
+       logic stays unit-testable. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ClipDrop.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClipDrop.Core.Tests" />
+  </ItemGroup>
+
+</Project>

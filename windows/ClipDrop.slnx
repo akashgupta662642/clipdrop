@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="ClipDrop.Core/ClipDrop.Core.csproj" />
+  <Project Path="ClipDrop.Windows/ClipDrop.Windows.csproj" />
+  <Project Path="ClipDrop.Core.Tests/ClipDrop.Core.Tests.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+</Solution>

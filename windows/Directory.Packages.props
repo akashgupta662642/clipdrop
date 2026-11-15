@@ -1,0 +1,11 @@
+<Project>
+  <!-- Central package management: every NuGet version lives here. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Label="Testing">
+    <!-- xUnit v3 runs on Microsoft.Testing.Platform (opted in via global.json). -->
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
+  </ItemGroup>
+</Project>

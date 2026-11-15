@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- WPF shell: tray icon, clipboard monitor and views. Business logic lives
+       in ClipDrop.Core. Windows 10 1809 (build 17763) is the minimum. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ClipDrop.Windows</RootNamespace>
+    <AssemblyName>ClipDrop</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClipDrop.Core\ClipDrop.Core.csproj" />
+  </ItemGroup>
+
+</Project>
