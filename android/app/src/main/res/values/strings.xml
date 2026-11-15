@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">ClipDrop</string>
+    <string name="tagline">Clipboard and files between your phone and PC, over your own Wi-Fi.</string>
+</resources>
