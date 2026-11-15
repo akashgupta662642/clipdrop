@@ -2,7 +2,7 @@
 
 Sync the clipboard and send files between an Android phone and a Windows PC over your local network. End-to-end encrypted, with no account, cloud server or internet connection.
 
-> **Status:** early development (milestone 1 of 7: specification and skeleton). Nothing is usable yet.
+> **Status:** early development (milestone 2 of 7). A phone and PC can pair over TLS by QR code and keep a live, heartbeat-checked session. Clipboard sync and file transfer are next.
 
 ## How it works
 
@@ -31,8 +31,8 @@ The two platforms share no code. They agree only through `docs/PROTOCOL.md` and 
 
 ## Roadmap
 
-1. **Spec and skeleton.** Protocol spec, both projects building, CI. *(in progress)*
-2. **Protocol core and pairing.** Codec, golden vectors, identity, TLS with pinning, QR pairing, heartbeat.
+1. **Spec and skeleton.** Protocol spec, both projects building, CI. *(done)*
+2. **Protocol core and pairing.** Codec, golden vectors, identity, TLS with pinning, QR pairing, heartbeat. *(done, pending a hardware test)*
 3. **Text clipboard,** in both directions.
 4. **File transfer,** with resume.
 5. **Images, history, devices, settings,** mDNS discovery and reconnect.
