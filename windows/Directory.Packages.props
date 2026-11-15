@@ -11,6 +11,11 @@
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.15" />
   </ItemGroup>
 
+  <ItemGroup Label="Windows app">
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="QRCoder" Version="1.8.1" />
+  </ItemGroup>
+
   <ItemGroup Label="Testing">
     <!-- xUnit v3 runs on Microsoft.Testing.Platform (opted in via global.json). -->
     <PackageVersion Include="xunit.v3" Version="4.0.3" />

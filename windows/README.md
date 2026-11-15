@@ -25,6 +25,27 @@ dotnet run --project ClipDrop.Windows
 Tests run on Microsoft.Testing.Platform, which `global.json` opts into. The .NET 10 SDK
 no longer runs xUnit v3 through the older VSTest bridge.
 
+### Running
+
+`ClipDrop.exe` listens on all interfaces, port 47821, so phones on the LAN can reach it. The first
+time, Windows Defender Firewall asks whether to allow it: choose **Private networks**. App data
+lives in `%LOCALAPPDATA%\ClipDrop`: the DPAPI-protected identity, the paired-device database and
+`settings.json`.
+
+**Developer mode** listens on `127.0.0.1` only. It needs no firewall exception and keeps its own
+data under `%LOCALAPPDATA%\ClipDrop\Developer`:
+
+```bash
+dotnet run --project ClipDrop.Windows -- --loopback-only
+```
+
+In this mode the pairing panel also shows the `clipdrop://pair` link as text. An Android emulator
+reaches the PC's loopback as `10.0.2.2`, which the link lists, so you can pair one without a camera:
+
+```bash
+adb shell "am start -a android.intent.action.VIEW -d '<link from the pairing panel>'"
+```
+
 Package versions are managed centrally in `Directory.Packages.props`. Shared compiler
 settings, including nullable reference types, warnings as errors and the recommended
 analyser set, are in `Directory.Build.props`.

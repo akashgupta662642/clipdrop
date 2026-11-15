@@ -85,12 +85,17 @@ public sealed partial class HostServer : IAsyncDisposable
     /// Binds the first free port among <paramref name="candidatePorts"/> (§4.1: the default port, then the
     /// last-used one), falling back to an ephemeral port, and starts accepting connections.
     /// </summary>
-    public void Start(IEnumerable<int> candidatePorts)
+    /// <param name="candidatePorts">Ports to try in order before an ephemeral one.</param>
+    /// <param name="bindAddress">
+    /// <see cref="IPAddress.Any"/> (the default) for real use. Tests, the interop harness and emulator
+    /// development use <see cref="IPAddress.Loopback"/>, which needs no firewall exception.
+    /// </param>
+    public void Start(IEnumerable<int> candidatePorts, IPAddress? bindAddress = null)
     {
         ArgumentNullException.ThrowIfNull(candidatePorts);
         foreach (int port in candidatePorts.Append(0))
         {
-            var listener = new TcpListener(IPAddress.Any, port) { ExclusiveAddressUse = true };
+            var listener = new TcpListener(bindAddress ?? IPAddress.Any, port) { ExclusiveAddressUse = true };
             try
             {
                 listener.Start();

@@ -48,7 +48,8 @@ server.SessionStarted += (_, session) => Console.WriteLine($"SESSION_STARTED {se
 server.SessionEnded += (_, session) =>
     Console.WriteLine($"SESSION_ENDED {session.Device.DeviceId} {session.Session.Completion.Result}");
 
-server.Start(port == 0 ? [] : [port]);
+// Loopback only: the harness never needs other machines, and loopback needs no firewall exception.
+server.Start(port == 0 ? [] : [port], System.Net.IPAddress.Loopback);
 Console.WriteLine($"HOST {identity.DeviceId}");
 Console.WriteLine($"LISTENING {server.Port}");
 

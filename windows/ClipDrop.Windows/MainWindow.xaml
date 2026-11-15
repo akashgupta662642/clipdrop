@@ -1,13 +1,89 @@
 <Window x:Class="ClipDrop.Windows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ClipDrop.Windows.ViewModels"
         Title="ClipDrop"
-        Width="420" Height="240"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="CanMinimize">
-    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
-        <TextBlock Text="ClipDrop" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" />
-        <TextBlock Text="Clipboard and files between your phone and PC, over your own Wi-Fi."
-                   Margin="0,8,0,0" TextWrapping="Wrap" TextAlignment="Center" />
-    </StackPanel>
+        Width="560" Height="640" MinWidth="460" MinHeight="520"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="Visible" />
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <DockPanel Grid.Row="0">
+            <Button DockPanel.Dock="Right" Content="Pair device" Padding="16,6"
+                    Command="{Binding PairDeviceCommand}" AutomationProperties.Name="Pair a new device" />
+            <StackPanel>
+                <TextBlock Text="{Binding DeviceName}" FontSize="24" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding NetworkSummary}" Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0" />
+            </StackPanel>
+        </DockPanel>
+
+        <TextBlock Grid.Row="1" Text="Paired devices" FontSize="16" FontWeight="SemiBold" Margin="0,24,0,8" />
+
+        <!-- Device list, or a hint when there is none -->
+        <Grid Grid.Row="2">
+            <ListBox ItemsSource="{Binding Devices}" BorderThickness="0"
+                     Visibility="{Binding HasDevices, Converter={StaticResource Visible}}"
+                     AutomationProperties.Name="Paired devices">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:DeviceRow}">
+                        <StackPanel Margin="0,6">
+                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Status}" Foreground="Gray" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <!-- Shown only while the list is empty (a local Visibility value would override the trigger). -->
+            <TextBlock TextWrapping="Wrap" Foreground="Gray"
+                       Text="No devices yet. Click Pair device, then scan the code with the ClipDrop app on your phone.">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasDevices}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+
+        <!-- Pairing panel: covers the window while a code is showing -->
+        <Border Grid.RowSpan="3" Background="White" Padding="24"
+                Visibility="{Binding IsPairing, Converter={StaticResource Visible}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="400">
+                <TextBlock Text="Pair a device" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <Image Source="{Binding PairingQrCode}" Width="280" Height="280" Margin="0,16"
+                       RenderOptions.BitmapScalingMode="NearestNeighbor"
+                       AutomationProperties.Name="Pairing QR code" />
+                <TextBlock Text="{Binding PairingStatus}" TextWrapping="Wrap" TextAlignment="Center" />
+                <!-- Developer mode only (the loopback-only switch): the link as text, for adb testing with an emulator. -->
+                <TextBox Text="{Binding DeveloperPairingLink, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                         Margin="0,12,0,0" FontFamily="Consolas" FontSize="11"
+                         AutomationProperties.AutomationId="DeveloperPairingLink"
+                         AutomationProperties.Name="Developer pairing link">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DeveloperPairingLink}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+                <Button Content="Close" Command="{Binding ClosePairingCommand}" Padding="16,6" Margin="0,16,0,0"
+                        HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>

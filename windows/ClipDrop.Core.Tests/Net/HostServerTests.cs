@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Security;
 using System.Security.Authentication;
 using ClipDrop.Core.Identity;
@@ -30,7 +31,7 @@ public sealed class HostServerTests : IAsyncLifetime
 
     public ValueTask InitializeAsync()
     {
-        _server.Start([0]);
+        _server.Start([0], IPAddress.Loopback); // loopback: no firewall prompt
         return ValueTask.CompletedTask;
     }
 

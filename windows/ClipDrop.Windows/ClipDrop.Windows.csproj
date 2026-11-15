@@ -16,4 +16,9 @@
     <ProjectReference Include="..\ClipDrop.Core\ClipDrop.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="QRCoder" />
+  </ItemGroup>
+
 </Project>
