@@ -11,8 +11,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.bouncycastle.asn1.x500.X500Name
@@ -40,6 +42,9 @@ import kotlin.time.Duration.Companion.seconds
  *   clipdrop-interop pair --state <dir> --uri-file <path>   pair using the host's pairing URI
  *   clipdrop-interop ping --state <dir> [--count <n>]       reconnect as a paired device and ping
  *   clipdrop-interop clip --state <dir>                     send a clip; expect the host's echo back
+ *   clipdrop-interop session --state <dir> [--send <text>] [--listen <seconds>]
+ *                                                           manual testing against the real app:
+ *                                                           send one clip, then print clips received
  *
  * Exit code 0 means success. Each step prints one line per event.
  */
@@ -52,11 +57,12 @@ fun main(args: Array<String>) {
     val code = runBlocking {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         try {
-            withTimeout(60.seconds) {
+            withTimeout(120.seconds) {
                 when (command) {
                     "pair" -> pair(state, File(options["--uri-file"] ?: usage()), scope)
                     "ping" -> ping(state, options["--count"]?.toInt() ?: 3, scope)
                     "clip" -> clip(state, scope)
+                    "session" -> session(state, options["--send"], options["--listen"]?.toInt() ?: 0, scope)
                     else -> usage()
                 }
             }
@@ -126,6 +132,28 @@ private suspend fun clip(state: File, scope: CoroutineScope): Int {
             }
         }
     }
+}
+
+/** For manual tests against the real Windows app: optionally send one clip, then print what arrives. */
+private suspend fun session(state: File, send: String?, listenSeconds: Int, scope: CoroutineScope): Int {
+    val identity = loadOrCreateIdentity(state)
+    val (hostId, address) = loadHost(state) ?: return fail("not paired yet: run 'pair' first")
+    val outcome = connector(identity).connect(listOf(address), hostId, scope)
+    if (outcome !is ConnectOutcome.Connected) return fail("connect failed: ${(outcome as ConnectOutcome.Failed).failure}")
+
+    val session = outcome.session
+    println("CONNECTED ${outcome.host.name}")
+    val printer = scope.launch {
+        session.incoming.filterIsInstance<ClipText>().collect { println("RECEIVED ${it.text}") }
+    }
+    if (send != null) {
+        session.send(ClipText(UUID.randomUUID().toString(), send, System.currentTimeMillis()))
+        println("SENT $send")
+    }
+    delay(listenSeconds.seconds)
+    printer.cancel()
+    session.close()
+    return 0
 }
 
 private fun connector(identity: TlsIdentity) =
