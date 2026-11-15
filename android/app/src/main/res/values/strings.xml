@@ -25,7 +25,7 @@
     <string name="send_no_pc">No PC is connected. Open ClipDrop to reconnect.</string>
     <string name="send_empty">The clipboard is empty.</string>
     <string name="send_sensitive">Not sent: the app that copied it marked it as sensitive.</string>
-    <string name="send_echo">That came from your PC, so it\'s already there.</string>
+    <string name="send_echo">Your PC already has this clip.</string>
     <string name="send_too_large">Too large to send as text (over 1 MB).</string>
     <string name="send_not_text">Only text can be sent for now.</string>
 

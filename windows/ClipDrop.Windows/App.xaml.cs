@@ -95,7 +95,7 @@ public partial class App : Application
             { Skipped: SkipReason.Empty } => "The clipboard is empty.",
             { Skipped: SkipReason.NotText } => "Only text can be sent for now.",
             { Skipped: SkipReason.Excluded } => "Not sent: the app that copied it asked to keep it private.",
-            { Skipped: SkipReason.Echo } => "That came from your phone, so it's already there.",
+            { Skipped: SkipReason.Echo } => "Your phone already has this clip.",
             { Skipped: SkipReason.TooLarge } => "Too large to send as text (over 1 MB).",
             { Recipients: 0 } => "No phone is connected.",
             { Recipients: 1 } => "Sent to your phone.",
