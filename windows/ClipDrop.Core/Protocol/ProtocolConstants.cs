@@ -24,7 +24,8 @@ public static class ProtocolConstants
     public const int PairingTokenBytes = 16;
     public const int PairingMaxFailures = 5;
     public const int MaxPairingConnections = 4;
-    public const int EchoHistory = 8;
+    /// <summary>Echo suppression remembers the last clip exchanged, in either direction (§11.3).</summary>
+    public const int EchoHistory = 1;
     public const long MaxClipboardImageBytes = 64L * 1024 * 1024;
 
     /// <summary>The largest integer every JSON parser represents exactly (2^53 − 1).</summary>

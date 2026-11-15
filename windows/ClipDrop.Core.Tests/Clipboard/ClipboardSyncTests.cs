@@ -42,6 +42,28 @@ public class ClipboardSyncTests
     }
 
     [Fact]
+    public void A_clip_just_sent_isnt_sent_again_which_stops_loops_with_other_clipboard_tools()
+    {
+        _sync.OnSent(_sync.Prepare(new LocalClip.TextClip("X", Excluded: false)).Message!);
+        Assert.Equal(SkipReason.Echo, _sync.Prepare(new LocalClip.TextClip("X", Excluded: false)).Skipped);
+    }
+
+    [Fact]
+    public void Copying_X_then_Y_then_X_again_sends_the_second_X()
+    {
+        _sync.OnSent(_sync.Prepare(new LocalClip.TextClip("X", Excluded: false)).Message!);
+        _sync.OnSent(_sync.Prepare(new LocalClip.TextClip("Y", Excluded: false)).Message!);
+        Assert.NotNull(_sync.Prepare(new LocalClip.TextClip("X", Excluded: false)).Message);
+    }
+
+    [Fact]
+    public void A_send_that_reached_nobody_doesnt_count_as_exchanged()
+    {
+        _sync.Prepare(new LocalClip.TextClip("X", Excluded: false)); // no phone connected: OnSent never called
+        Assert.NotNull(_sync.Prepare(new LocalClip.TextClip("X", Excluded: false)).Message);
+    }
+
+    [Fact]
     public void Text_too_large_for_one_frame_is_refused()
     {
         string huge = new('x', ProtocolConstants.MaxFrameLength);

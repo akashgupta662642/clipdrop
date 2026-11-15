@@ -4,8 +4,8 @@ import io.github.akashgupta662642.clipdrop.protocol.ProtocolConstants
 import java.security.MessageDigest
 
 /**
- * Remembers the hashes of recent clips so a clip received from a peer is never sent straight back
- * (PROTOCOL.md §11.3). Shared by both directions. Thread-safe.
+ * Remembers the hash of the last clip exchanged with a peer, sent or received, so it is never sent
+ * straight back (PROTOCOL.md §11.3). Thread-safe. [capacity] exists for tests; the protocol uses 1.
  *
  * Text is compared after normalising line endings to `\n`: Windows and Android disagree about
  * CRLF, and a clip must still be recognised after a round trip through either clipboard.
@@ -13,7 +13,7 @@ import java.security.MessageDigest
 public class EchoGuard(private val capacity: Int = ProtocolConstants.ECHO_HISTORY) {
     private val recent = ArrayDeque<String>(capacity)
 
-    /** Records [text] as seen (received from a peer, or just written to the local clipboard). */
+    /** Records [text] as the last clip exchanged (sent to, or received from, a peer). */
     public fun remember(text: String) {
         val hash = hashOf(text)
         synchronized(recent) {

@@ -67,4 +67,13 @@ public class ClipboardSync(
     public fun onReceived(clip: ClipText) {
         echoGuard.remember(clip.text)
     }
+
+    /**
+     * Call once [clip] has actually been sent. Remembering it stops loops when another program copies
+     * the same text back onto the clipboard. Not done in [prepare]: a send that found no peer must not
+     * make the next attempt look like an echo.
+     */
+    public fun onSent(clip: ClipText) {
+        echoGuard.remember(clip.text)
+    }
 }

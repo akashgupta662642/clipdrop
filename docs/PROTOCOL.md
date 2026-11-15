@@ -649,7 +649,10 @@ This mapping is guidance for the client UI and isn't part of the wire protocol.
 
 These rules are local behaviour, but both sides MUST follow them, or a clip would bounce back and forth between devices.
 
-* **Echo suppression.** Each side remembers the SHA-256 of at least the last 8 clips it received or wrote. For text, that is the hash of the UTF-8 text. For images, it is the hash of the PNG bytes as received. A local clipboard change whose hash matches a remembered clip MUST NOT be sent. The Windows host MUST also ignore the clipboard update that its own write causes (it can detect this with `GetClipboardSequenceNumber`).
+* **Echo suppression.** Each side remembers the SHA-256 of the **last clip that crossed the link in either direction**, sent or received. For text, that is the hash of the UTF-8 text with CRLF normalised to LF. For images, it is the hash of the PNG bytes. A local clip whose hash matches it MUST NOT be sent.
+  * Remembering sent clips stops loops. Another program may copy a received clip back onto the clipboard as a fresh change, for example the Android emulator's clipboard sharing, or a second sync tool.
+  * Remembering only the last clip, rather than a longer history, keeps "copy X, then Y, then X again" working: the second X differs from the last clip exchanged, Y, so it is sent.
+* **Own writes.** The Windows host MUST also ignore the clipboard update that its own write causes. It can detect this with `GetClipboardSequenceNumber`.
 * **Sensitive content.** Senders MUST NOT send a clip that the platform marks as sensitive:
   * Android: `ClipDescription.EXTRA_IS_SENSITIVE`.
   * Windows: any of the clipboard formats `ExcludeClipboardContentFromMonitorProcessing` or `Clipboard Viewer Ignore`, or `CanIncludeInClipboardHistory` or `CanUploadToCloudClipboard` with the value 0.
@@ -895,5 +898,5 @@ Regenerate the files with `python docs/test-vectors/generate.py`, and commit the
 | `RECONNECT_BACKOFF` | 1 s doubling to 30 s, ±20 % jitter | §9.6 |
 | `OFFER_RESPONSE_TIMEOUT` | 10 min | §12.1 |
 | `MAX_CLIPBOARD_IMAGE` | 64 MiB (receiver MAY reject above) | §11.2 |
-| `ECHO_HISTORY` | ≥ 8 clips | §11.3 |
+| `ECHO_HISTORY` | the last clip exchanged, in either direction | §11.3 |
 | `PROGRESS_RATE` | ≤ 10 updates/s | §12.2 |

@@ -96,8 +96,16 @@ public sealed class ClipboardSync(EchoGuard echoGuard, TimeProvider timeProvider
         echoGuard.Remember(clip.Text);
     }
 
-    /// <summary>Call after writing to the local clipboard, so the resulting change isn't sent back.</summary>
-    public void OnWrittenLocally(string text) => echoGuard.Remember(text);
+    /// <summary>
+    /// Call once <paramref name="clip"/> has actually been sent. Remembering it stops loops when another
+    /// program copies the same text back onto the clipboard. Not done in <see cref="Prepare"/>: a send
+    /// that found no peer must not make the next attempt look like an echo.
+    /// </summary>
+    public void OnSent(ClipText clip)
+    {
+        ArgumentNullException.ThrowIfNull(clip);
+        echoGuard.Remember(clip.Text);
+    }
 
     private OutgoingClip Build(string text)
     {

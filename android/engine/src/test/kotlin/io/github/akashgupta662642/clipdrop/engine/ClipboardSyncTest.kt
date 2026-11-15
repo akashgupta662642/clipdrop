@@ -40,6 +40,26 @@ class ClipboardSyncTest {
     }
 
     @Test
+    fun `a clip just sent isn't sent again, which stops loops with other clipboard tools`() {
+        val sent = assertIs<OutgoingClip.Send>(sync.prepare(LocalClip.Text("X", sensitive = false)))
+        sync.onSent(sent.message)
+        assertEquals(OutgoingClip.Skipped.ECHO, sync.prepare(LocalClip.Text("X", sensitive = false)))
+    }
+
+    @Test
+    fun `copying X, then Y, then X again sends the second X`() {
+        sync.onSent(assertIs<OutgoingClip.Send>(sync.prepare(LocalClip.Text("X", sensitive = false))).message)
+        sync.onSent(assertIs<OutgoingClip.Send>(sync.prepare(LocalClip.Text("Y", sensitive = false))).message)
+        assertIs<OutgoingClip.Send>(sync.prepare(LocalClip.Text("X", sensitive = false)))
+    }
+
+    @Test
+    fun `a send that reached nobody doesn't count as exchanged`() {
+        sync.prepare(LocalClip.Text("X", sensitive = false)) // no PC connected: onSent never called
+        assertIs<OutgoingClip.Send>(sync.prepare(LocalClip.Text("X", sensitive = false)))
+    }
+
+    @Test
     fun `text too large for one frame is refused, not truncated`() {
         val huge = "x".repeat(ProtocolConstants.MAX_FRAME_LENGTH)
         assertEquals(OutgoingClip.Skipped.TOO_LARGE, sync.prepare(LocalClip.Text(huge, sensitive = false)))

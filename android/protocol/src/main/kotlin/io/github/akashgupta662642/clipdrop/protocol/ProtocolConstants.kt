@@ -28,7 +28,8 @@ public object ProtocolConstants {
     public const val PAIRING_TOKEN_BYTES: Int = 16
     public const val PAIRING_MAX_FAILURES: Int = 5
     public const val MAX_PAIRING_CONNECTIONS: Int = 4
-    public const val ECHO_HISTORY: Int = 8
+    /** Echo suppression remembers the last clip exchanged, in either direction (§11.3). */
+    public const val ECHO_HISTORY: Int = 1
     public const val MAX_CLIPBOARD_IMAGE_BYTES: Long = 64L * 1024 * 1024
 
     /** The largest integer every JSON parser represents exactly (2^53 − 1). */

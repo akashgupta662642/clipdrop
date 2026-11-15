@@ -46,7 +46,7 @@ internal sealed class ClipboardBridge : IDisposable
             return new SendSummary(0, outgoing.Skipped);
         }
 
-        return new SendSummary(await _runtime.Server.SendToAllAsync(outgoing.Message).ConfigureAwait(true), null);
+        return new SendSummary(await SendAsync(outgoing.Message).ConfigureAwait(true), null);
     }
 
     public void Dispose()
@@ -69,13 +69,24 @@ internal sealed class ClipboardBridge : IDisposable
             OutgoingClip outgoing = _sync.Prepare(await WindowsClipboard.ReadAsync().ConfigureAwait(true));
             if (outgoing.Message is not null)
             {
-                await _runtime.Server.SendToAllAsync(outgoing.Message).ConfigureAwait(true);
+                await SendAsync(outgoing.Message).ConfigureAwait(true);
             }
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.IO.IOException)
         {
             // The clipboard stayed locked, or the phone went away mid-send: skip this copy.
         }
+    }
+
+    private async Task<int> SendAsync(ClipText message)
+    {
+        int recipients = await _runtime.Server.SendToAllAsync(message).ConfigureAwait(true);
+        if (recipients > 0)
+        {
+            _sync.OnSent(message);
+        }
+
+        return recipients;
     }
 
     private void OnMessage(object? sender, SessionMessage e)

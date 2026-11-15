@@ -52,7 +52,12 @@ class ClipboardCoordinator @Inject constructor(
             is OutgoingClip.Skipped -> SendResult.Skipped(outgoing)
             is OutgoingClip.Send -> {
                 val sentTo = connections.sendToAll(outgoing.message)
-                if (sentTo.isEmpty()) SendResult.NoPcConnected else SendResult.Sent(sentTo)
+                if (sentTo.isEmpty()) {
+                    SendResult.NoPcConnected
+                } else {
+                    sync.onSent(outgoing.message)
+                    SendResult.Sent(sentTo)
+                }
             }
         }
 
