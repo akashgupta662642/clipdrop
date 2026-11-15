@@ -2,7 +2,7 @@
 
 Sync the clipboard and send files between an Android phone and a Windows PC over your local network. End-to-end encrypted, with no account, cloud server or internet connection.
 
-> **Status:** early development (milestone 2 of 7). A phone and PC can pair over TLS by QR code and keep a live, heartbeat-checked session. Clipboard sync and file transfer are next.
+> **Status:** early development (milestone 3 of 7). A phone and PC pair over TLS by QR code and sync text clips: PC to phone automatically, phone to PC from a tile, the notification or the app. File transfer is next; images come later.
 
 ## How it works
 
