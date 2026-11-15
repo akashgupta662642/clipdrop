@@ -21,4 +21,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- The golden vectors shared with the Android test suite (docs/PROTOCOL.md §16). -->
+  <ItemGroup>
+    <None Include="..\..\docs\test-vectors\*.json" LinkBase="TestVectors" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
