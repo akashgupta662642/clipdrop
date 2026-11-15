@@ -96,9 +96,12 @@ public sealed partial class PeerSession : IAsyncDisposable
     /// <summary>Starts the reader, writer and heartbeat. Call once.</summary>
     public void Start()
     {
+        // Arm the heartbeat timer here, not inside the task: the clock must be counting from the moment
+        // Start returns, however long the thread pool takes to run the loop.
+        var heartbeat = new PeriodicTimer(HeartbeatTick, _time);
         _writer = Task.Run(WriteLoopAsync);
         _ = Task.Run(ReadLoopAsync);
-        _ = Task.Run(HeartbeatLoopAsync);
+        _ = Task.Run(() => HeartbeatLoopAsync(heartbeat));
     }
 
     /// <summary>
@@ -277,10 +280,10 @@ public sealed partial class PeerSession : IAsyncDisposable
         }
     }
 
-    private async Task HeartbeatLoopAsync()
+    private async Task HeartbeatLoopAsync(PeriodicTimer timer)
     {
         long? lastPingSent = null;
-        using var timer = new PeriodicTimer(HeartbeatTick, _time);
+        using PeriodicTimer owned = timer;
         try
         {
             while (await timer.WaitForNextTickAsync(_lifetime.Token).ConfigureAwait(false))

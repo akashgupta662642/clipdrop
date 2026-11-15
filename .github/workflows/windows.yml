@@ -57,6 +57,22 @@ jobs:
           dotnet test --solution ClipDrop.slnx --configuration Release --no-build
           --report-xunit-trx --results-directory TestResults
 
+      # Turns each failed test into an annotation, readable on the run page without signing in.
+      - name: Report failed tests
+        if: failure()
+        shell: pwsh
+        run: |
+          $ns = @{ t = 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010' }
+          Get-ChildItem TestResults -Filter *.trx -Recurse | ForEach-Object {
+            [xml]$trx = Get-Content -Raw $_.FullName
+            Select-Xml -Xml $trx -XPath '//t:UnitTestResult[@outcome="Failed"]' -Namespace $ns | ForEach-Object {
+              $result = $_.Node
+              $message = (($result.Output.ErrorInfo.Message | Out-String) -split "`r?`n" | Where-Object { $_ })[0]
+              $text = "$($result.testName): $message" -replace '%', '%25'
+              Write-Output "::error title=Failed test::$text"
+            }
+          }
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
