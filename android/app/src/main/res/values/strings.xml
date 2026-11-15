@@ -1,5 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">ClipDrop</string>
-    <string name="tagline">Clipboard and files between your phone and PC, over your own Wi-Fi.</string>
+
+    <!-- Home -->
+    <string name="home_pair_button">Pair with a PC</string>
+    <string name="home_empty_title">No PCs paired yet</string>
+    <string name="home_empty_body">Open ClipDrop on your PC, choose Pair device, and scan the QR code it shows.</string>
+    <string name="home_section_pcs">Your PCs</string>
+    <string name="home_ping">Ping</string>
+    <string name="home_reconnect">Reconnect</string>
+    <string name="state_idle">Not connected</string>
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_connected">Connected</string>
+    <string name="state_connected_rtt">Connected · ping %1$d ms</string>
+    <string name="home_ping_failed">%1$s didn\'t answer the ping.</string>
+
+    <!-- Scanning -->
+    <string name="scan_title">Scan the pairing code</string>
+    <string name="scan_hint">Point your camera at the QR code that ClipDrop shows on your PC.</string>
+    <string name="scan_camera_rationale">ClipDrop uses the camera only to read the pairing QR code. Nothing is recorded or sent anywhere.</string>
+    <string name="scan_grant_camera">Allow camera</string>
+    <string name="scan_open_settings">Open settings</string>
+    <string name="back">Back</string>
+
+    <!-- Pairing -->
+    <string name="pair_title">Pair with %1$s?</string>
+    <string name="pair_body">This phone and %1$s will trust each other. Only pair with a PC you own.</string>
+    <string name="pair_confirm">Pair</string>
+    <string name="cancel">Cancel</string>
+    <string name="pair_in_progress">Pairing with %1$s…</string>
+    <string name="pair_success">Paired with %1$s</string>
+    <string name="pair_success_body">You can now send your clipboard and files between this phone and your PC.</string>
+    <string name="done">Done</string>
+    <string name="pair_failed_title">Couldn\'t pair</string>
+    <string name="try_again">Try again</string>
+    <string name="scan_again">Scan again</string>
+    <string name="pair_invalid_code">That QR code isn\'t a ClipDrop pairing code.</string>
+    <string name="pair_newer_version">This pairing code comes from a newer version of ClipDrop. Update the app on this phone.</string>
+    <string name="local_network_rationale">ClipDrop needs access to your local network to reach your PC. Your data never leaves your Wi-Fi.</string>
+    <string name="local_network_grant">Allow local network access</string>
+
+    <!-- Failure reasons (PROTOCOL.md §10.3) -->
+    <string name="failure_wrong_network">Your phone and PC are on different networks. Connect both to the same Wi-Fi and try again.</string>
+    <string name="failure_unreachable">The PC didn\'t answer. Check that Windows Firewall allows ClipDrop on private networks.</string>
+    <string name="failure_refused">ClipDrop isn\'t running on the PC, or it\'s using a different port.</string>
+    <string name="failure_pin_mismatch">The device that answered isn\'t the PC that showed this code.</string>
+    <string name="failure_tls">The PC refused the secure connection. If this phone was unpaired on the PC, pair again.</string>
+    <string name="failure_protocol">Something went wrong talking to the PC. Make sure both apps are up to date.</string>
+    <string name="failure_version">This version of ClipDrop can\'t talk to the one on your PC. Update both apps.</string>
+    <string name="failure_expired">The code expired. Show a new one on the PC.</string>
+    <string name="failure_invalid_token">That code isn\'t valid any more. Show a new one on the PC.</string>
+    <string name="failure_pairing_closed">Pairing isn\'t open on the PC. Click Pair device again.</string>
+    <string name="failure_forgotten">The PC no longer recognises this phone. Pair again.</string>
 </resources>

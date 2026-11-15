@@ -19,6 +19,10 @@ public class PinMismatchException(message: String) : CertificateException(messag
  *
  * Extends [X509ExtendedTrustManager] so the JSSE doesn't wrap it with extra checks of its own.
  */
+// Lint warns that custom trust managers usually disable validation. This one replaces CA
+// validation with a stricter rule (exactly one pinned certificate), and every rejection path is
+// covered by TlsLoopbackTest.
+@Suppress("CustomX509TrustManager")
 public class PinnedTrustManager(expectedFingerprint: ByteArray) : X509ExtendedTrustManager() {
     private val expected = expectedFingerprint.copyOf()
 

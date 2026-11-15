@@ -1,61 +1,38 @@
 package io.github.akashgupta662642.clipdrop
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.akashgupta662642.clipdrop.ui.ClipDropApp
 import io.github.akashgupta662642.clipdrop.ui.theme.ClipDropTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    /** A `clipdrop://pair` link waiting to be shown on the pairing screen. */
+    private var pairingLink by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null) pairingLink = pairingLinkFrom(intent)
         setContent {
             ClipDropTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    WelcomeScreen(Modifier.padding(innerPadding))
-                }
+                ClipDropApp(pairingLink = pairingLink, onPairingLinkHandled = { pairingLink = null })
             }
         }
     }
-}
 
-@Composable
-private fun WelcomeScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
-        Text(
-            stringResource(R.string.tagline),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        pairingLinkFrom(intent)?.let { pairingLink = it }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun WelcomeScreenPreview() {
-    ClipDropTheme { WelcomeScreen() }
+    private fun pairingLinkFrom(intent: Intent?): String? =
+        intent?.takeIf { it.action == Intent.ACTION_VIEW }?.dataString
 }

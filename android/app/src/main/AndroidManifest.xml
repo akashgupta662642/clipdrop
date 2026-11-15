@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Android 17+ blocks LAN traffic for apps targeting API 37 unless this runtime permission
+         (NEARBY_DEVICES group) is granted. Older platforms ignore it. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_LOCAL_NETWORK"
+        tools:ignore="UnusedAttribute" />
+    <!-- Only used to scan the pairing QR code. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Pairing also works through a clipdrop://pair link, so a camera isn't required. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <!-- Pairing data and history stay on the device: no cloud backup and no
          device-to-device transfer. dataExtractionRules covers Android 12+,
@@ -17,10 +33,22 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- A pairing QR code scanned with the system camera opens the app on the pairing
+                 screen, which always asks the user to confirm. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="clipdrop"
+                    android:host="pair" />
             </intent-filter>
         </activity>
     </application>
