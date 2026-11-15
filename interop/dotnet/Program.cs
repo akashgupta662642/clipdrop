@@ -48,6 +48,20 @@ server.SessionStarted += (_, session) => Console.WriteLine($"SESSION_STARTED {se
 server.SessionEnded += (_, session) =>
     Console.WriteLine($"SESSION_ENDED {session.Device.DeviceId} {session.Session.Completion.Result}");
 
+// Clipboard exchange: answer every clip with "PC echo: " + its text, so the client can check both
+// directions, including the exact bytes of awkward text.
+server.MessageReceived += async (_, received) =>
+{
+    if (received.Message is not ClipText clip)
+    {
+        return;
+    }
+
+    Console.WriteLine($"CLIP_RECEIVED {clip.Text.Length} chars");
+    var reply = new ClipText(Guid.NewGuid().ToString("D"), "PC echo: " + clip.Text, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+    await received.Session.Session.SendAsync(reply);
+};
+
 // Loopback only: the harness never needs other machines, and loopback needs no firewall exception.
 server.Start(port == 0 ? [] : [port], System.Net.IPAddress.Loopback);
 Console.WriteLine($"HOST {identity.DeviceId}");

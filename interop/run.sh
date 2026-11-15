@@ -3,7 +3,7 @@
 # harness (ClipDrop.Core) over TLS on localhost, then reconnects as a paired device and pings.
 #
 # Usage: interop/run.sh           (needs a JDK 17+ and the .NET 10 SDK)
-# Later milestones extend this with clipboard exchange and a resumed 50 MB file transfer.
+# A later milestone adds a resumed 50 MB file transfer.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -41,5 +41,9 @@ echo "==> Pairing"
 echo "==> Reconnecting as a paired device and pinging"
 "$CLIENT" ping --state "$WORK/client" --count 3
 
+echo "==> Exchanging a text clip both ways"
+"$CLIENT" clip --state "$WORK/client"
+
 grep -q "^PAIRED " "$HOST_LOG" || { echo "host didn't record the pairing"; exit 1; }
+grep -q "^CLIP_RECEIVED " "$HOST_LOG" || { echo "host didn't receive the clip"; exit 1; }
 echo "==> Interop OK"

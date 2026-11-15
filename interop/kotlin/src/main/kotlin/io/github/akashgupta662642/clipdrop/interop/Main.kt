@@ -5,11 +5,14 @@ import io.github.akashgupta662642.clipdrop.engine.HostConnector
 import io.github.akashgupta662642.clipdrop.engine.handshake.LocalDevice
 import io.github.akashgupta662642.clipdrop.engine.tls.TlsConnector
 import io.github.akashgupta662642.clipdrop.engine.tls.TlsIdentity
+import io.github.akashgupta662642.clipdrop.protocol.ClipText
 import io.github.akashgupta662642.clipdrop.protocol.PairingUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.bouncycastle.asn1.x500.X500Name
@@ -27,6 +30,7 @@ import java.security.cert.X509Certificate
 import java.security.spec.ECGenParameterSpec
 import java.util.Date
 import java.util.Properties
+import java.util.UUID
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
@@ -35,6 +39,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  *   clipdrop-interop pair --state <dir> --uri-file <path>   pair using the host's pairing URI
  *   clipdrop-interop ping --state <dir> [--count <n>]       reconnect as a paired device and ping
+ *   clipdrop-interop clip --state <dir>                     send a clip; expect the host's echo back
  *
  * Exit code 0 means success. Each step prints one line per event.
  */
@@ -51,6 +56,7 @@ fun main(args: Array<String>) {
                 when (command) {
                     "pair" -> pair(state, File(options["--uri-file"] ?: usage()), scope)
                     "ping" -> ping(state, options["--count"]?.toInt() ?: 3, scope)
+                    "clip" -> clip(state, scope)
                     else -> usage()
                 }
             }
@@ -93,6 +99,31 @@ private suspend fun ping(state: File, count: Int, scope: CoroutineScope): Int {
             repeat(count) { println("PING ${outcome.session.ping().inWholeMilliseconds} ms") }
             outcome.session.close()
             0
+        }
+    }
+}
+
+/** Text that stresses the encoders: accents, emoji (outside the BMP), CJK, CRLF, quotes and escapes. */
+private const val CLIP_TEXT = "Phone → PC: naïve café 😀👍🏽 日本語\r\nline two \"quoted\" \\ tab\t end"
+
+private suspend fun clip(state: File, scope: CoroutineScope): Int {
+    val identity = loadOrCreateIdentity(state)
+    val (hostId, address) = loadHost(state) ?: return fail("not paired yet: run 'pair' first")
+
+    return when (val outcome = connector(identity).connect(listOf(address), hostId, scope)) {
+        is ConnectOutcome.Failed -> fail("reconnect failed: ${outcome.failure}")
+        is ConnectOutcome.Connected -> {
+            val session = outcome.session
+            session.send(ClipText(UUID.randomUUID().toString(), CLIP_TEXT, System.currentTimeMillis()))
+            println("CLIP_SENT ${CLIP_TEXT.length} chars")
+            val reply = withTimeout(10.seconds) { session.incoming.filterIsInstance<ClipText>().first() }
+            session.close()
+            if (reply.text == "PC echo: $CLIP_TEXT") {
+                println("CLIP_ECHOED ${reply.text.length} chars, identical")
+                0
+            } else {
+                fail("the host's echo differs from what was sent")
+            }
         }
     }
 }
