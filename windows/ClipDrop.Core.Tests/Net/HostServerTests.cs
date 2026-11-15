@@ -192,6 +192,29 @@ public sealed class HostServerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Clips_flow_both_ways_through_MessageReceived_and_SendToAllAsync()
+    {
+        TestPhone phone = NewPhone();
+        Pin(phone);
+        var received = new TaskCompletionSource<SessionMessage>();
+        _server.MessageReceived += (_, message) => received.TrySetResult(message);
+
+        await phone.ConnectAsync(_server.Port, _host.Fingerprint);
+        await phone.SendAsync(phone.Hello());
+        await phone.ReceiveAsync();
+
+        var fromPhone = new ClipText("3f2b8c1e-7a4d-4e6b-9c0a-1d2e3f405162", "from the phone 📱", 1);
+        await phone.SendAsync(fromPhone);
+        SessionMessage arrived = await received.Task.WaitAsync(Timeout, Ct);
+        Assert.Equal(fromPhone, arrived.Message);
+        Assert.Equal(phone.DeviceId, arrived.Session.Device.DeviceId);
+
+        var fromPc = new ClipText("a3bb189e-8bf9-4888-9912-ace4e6543002", "from the PC 💻", 2);
+        Assert.Equal(1, await _server.SendToAllAsync(fromPc, Ct));
+        Assert.Equal(fromPc, await phone.ReceiveAsync());
+    }
+
+    [Fact]
     public async Task UNPAIR_from_the_phone_forgets_it()
     {
         TestPhone phone = NewPhone();

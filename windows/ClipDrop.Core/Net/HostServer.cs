@@ -18,6 +18,9 @@ namespace ClipDrop.Core.Net;
 /// <summary>A paired device with a live session.</summary>
 public sealed record HostSessionInfo(PairedDevice Device, IPEndPoint RemoteEndPoint, PeerSession Session);
 
+/// <summary>A message that arrived on a session.</summary>
+public sealed record SessionMessage(HostSessionInfo Session, ProtocolMessage Message);
+
 /// <summary>
 /// The PC's TCP server (PROTOCOL.md §4): TLS with required client certificates, pinned to paired
 /// devices (or open to new ones while pairing mode is), then the host side of HELLO and pairing.
@@ -80,6 +83,32 @@ public sealed partial class HostServer : IAsyncDisposable
     public event EventHandler<HostSessionInfo>? SessionEnded;
 
     public event EventHandler<PairedDevice>? DevicePaired;
+
+    /// <summary>
+    /// Every application message from any live session (everything <see cref="PeerSession.Incoming"/>
+    /// yields). Raised on a thread-pool thread, in arrival order per session.
+    /// </summary>
+    public event EventHandler<SessionMessage>? MessageReceived;
+
+    /// <summary>Sends <paramref name="message"/> to every live session; returns how many it was queued for.</summary>
+    public async Task<int> SendToAllAsync(ProtocolMessage message, CancellationToken cancellationToken = default)
+    {
+        int sent = 0;
+        foreach (HostSessionInfo info in _sessions.Values)
+        {
+            try
+            {
+                await info.Session.SendAsync(message, cancellationToken).ConfigureAwait(false);
+                sent++;
+            }
+            catch (SessionClosedException)
+            {
+                // Closed between the snapshot and the send: it just doesn't count.
+            }
+        }
+
+        return sent;
+    }
 
     /// <summary>
     /// Binds the first free port among <paramref name="candidatePorts"/> (§4.1: the default port, then the
@@ -279,8 +308,18 @@ public sealed partial class HostServer : IAsyncDisposable
             TaskScheduler.Default);
 
         session.Start();
+        _ = Task.Run(() => PumpMessagesAsync(info));
         LogSessionStarted(device.DeviceId, remote);
         SessionStarted?.Invoke(this, info);
+    }
+
+    /// <summary>The single consumer of a session's incoming messages; fans them out through <see cref="MessageReceived"/>.</summary>
+    private async Task PumpMessagesAsync(HostSessionInfo info)
+    {
+        await foreach (ProtocolMessage message in info.Session.Incoming.ReadAllAsync().ConfigureAwait(false))
+        {
+            MessageReceived?.Invoke(this, new SessionMessage(info, message));
+        }
     }
 
     private SslServerAuthenticationOptions ServerOptions() => new()
